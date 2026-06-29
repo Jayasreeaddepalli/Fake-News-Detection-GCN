@@ -11,20 +11,32 @@ from torch_geometric.data import Data
 embeddings = torch.load("embeddings.pt")
 labels = torch.load("labels.pt")
 
-# Convert lists to tensors
+# -----------------------------
+# Convert embeddings correctly
+# -----------------------------
 if isinstance(embeddings, list):
-    embeddings = torch.tensor(embeddings, dtype=torch.float)
+    # embeddings is a list of tensors -> stack them
+    embeddings = torch.stack(embeddings)
 
+# Convert labels
 if isinstance(labels, list):
     labels = torch.tensor(labels, dtype=torch.long)
+elif not torch.is_tensor(labels):
+    labels = torch.tensor(labels, dtype=torch.long)
+
+# Ensure correct data types
+embeddings = embeddings.float()
+labels = labels.long()
 
 print("Embeddings shape:", embeddings.shape)
 print("Labels shape:", labels.shape)
-# Fix embedding shape if it has an extra dimension
+
+# Remove extra dimension if present
 if embeddings.dim() == 3 and embeddings.shape[1] == 1:
     embeddings = embeddings.squeeze(1)
 
 print("Fixed Embeddings shape:", embeddings.shape)
+
 # -----------------------------
 # Check dataset
 # -----------------------------
@@ -37,7 +49,6 @@ if num_nodes != len(labels):
 # Build graph
 # -----------------------------
 if num_nodes == 1:
-    # Self-loop for single node
     edge_index = torch.tensor([[0], [0]], dtype=torch.long)
 else:
     src = []
@@ -87,6 +98,8 @@ optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
 # -----------------------------
 # Training
 # -----------------------------
+print("\nTraining started...\n")
+
 model.train()
 
 for epoch in range(20):
@@ -101,7 +114,7 @@ for epoch in range(20):
 
     optimizer.step()
 
-    print(f"Epoch {epoch+1} Loss = {loss.item():.4f}")
+    print(f"Epoch {epoch+1:02d}/20 | Loss = {loss.item():.4f}")
 
 # -----------------------------
 # Evaluation
@@ -109,12 +122,20 @@ for epoch in range(20):
 model.eval()
 
 with torch.no_grad():
+    output = model(data)
+    pred = output.argmax(dim=1)
 
-    pred = model(data).argmax(dim=1)
+accuracy = accuracy_score(labels.cpu(), pred.cpu())
 
-print("\nAccuracy:", accuracy_score(labels, pred))
-print(classification_report(labels, pred))
+print("\n==============================")
+print(f"Accuracy: {accuracy:.4f}")
+print("==============================\n")
 
+print(classification_report(labels.cpu(), pred.cpu()))
+
+# -----------------------------
+# Save model
+# -----------------------------
 torch.save(model.state_dict(), "model.pth")
 
-print("\nModel saved successfully.")
+print("Model saved successfully!")

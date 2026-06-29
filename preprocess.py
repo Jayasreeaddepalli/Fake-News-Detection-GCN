@@ -5,8 +5,8 @@ from transformers import BertTokenizer, BertModel
 # -------------------------------
 # Step 1: Load CSV files
 # -------------------------------
-fake_df = pd.read_csv("FakeNewsNet/dataset/politifact_fake.csv")
-real_df = pd.read_csv("FakeNewsNet/dataset/politifact_real.csv")
+fake_df = pd.read_csv("C:/Users/lenovo/Project/Fake-News-Detection-GCN/FakeNewsNet/dataset/politifact_fake.csv")
+real_df = pd.read_csv("C:/Users/lenovo/Project/Fake-News-Detection-GCN/FakeNewsNet/dataset/politifact_real.csv")
 
 # -------------------------------
 # Step 2: Keep only the title column
